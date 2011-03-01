@@ -39,7 +39,6 @@ of a connection.
 
 =head2 new
 
- Make a new queue.
  Required parameters:
   redis => handle to Redis || coderef to generate a handle to Redis
   queue => name for queue
@@ -67,6 +66,8 @@ sub new {
 }
 
 =head1 THREADSAFE METHODS
+
+Atomic thread-safe methods.
 
 =head2 sendMessage
 
@@ -148,13 +149,14 @@ sub deleteMessage {
     $self->_call_redis('del', "$base:value:$key");
 }
 
-
 =head1 NON-THREADSAFE METHODS
+
+These methods return results that may not accurately represent the state of
+the queue by the time you read their results.
 
 =head2 length
 
-Get the length of the queue.
-By the time you read it, it may have changed...
+Get the length of the queue.  It may have changed by the time you read it
 but it's good for a general idea of how big the queue is.
 
 =cut
@@ -168,9 +170,10 @@ sub length {
 
 =head2 nuke
 
-Delete all storage associated with the queue.
-NOT THREADSAFE.  Messy things may happen if something is trying to use the queue at the same time this runs.
-On the other hand, it shouldn't be fatal... just the possibility of leaving some stuff behind.
+Delete all storage associated with the queue.  Messy things may happen if
+something else is trying to use the queue at the same time this runs.  On the
+other hand, it shouldn't be fatal, bu still leaves the the possibility of
+leaving some stuff behind.
 
 =cut
 sub nuke {
@@ -191,9 +194,9 @@ sub nuke {
 
 =head2 peekMessages
 
-Peek at some number of messages on the queue (defaults to 10).
-NOT THREADSAFE.  In particular, if there are workers deleting entries,
-this may return fewer entries than requested, even if there are more messages on the queue.
+Peek at some number of messages on the queue (defaults to 10).  In particular,
+if there are workers deleting entries, this may return fewer entries than
+requested, even if there are more messages on the queue.
 
 =cut
 sub peekMessages {
@@ -239,7 +242,11 @@ sub queues {
 
 =head1 PRIVATE METHODS
 
+Documentation here provided for developer reference.
+
 =head2 _queue_base
+
+Accessor method for the queue key-name prefix
 
 =cut
 sub _queue_base {
@@ -248,6 +255,8 @@ sub _queue_base {
 }
 
 =head2 _call_redis
+
+Send a request to Redis
 
 =cut
 sub _call_redis {
@@ -302,16 +311,6 @@ You can also look for information at:
 L<https://github.com/Redis-Queue/>
 
 =item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Redis-Queue>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Redis-Queue>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Redis-Queue/>
 
 =back
 
