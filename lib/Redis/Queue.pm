@@ -85,9 +85,9 @@ sub sendMessage {
     my $id = ++$unique;
     my $key = join('.', time(), $$, $id);
 
-    $self->call_redis('set', "$base:value:$key", $message);
-    $self->call_redis('set', "$base:fetched:$key", 0);
-    $self->call_redis('lpush',"$base:primary", $key);
+    $self->_call_redis('set', "$base:value:$key", $message);
+    $self->_call_redis('set', "$base:fetched:$key", 0);
+    $self->_call_redis('lpush',"$base:primary", $key);
     return $key;
 }
 
@@ -106,27 +106,27 @@ sub receiveMessage {
     # Find out (approximately) how long the list is.
     # Sure, it could change while we're walking the list,
     # but this is just to keep us from walking forever.
-    my $count = $self->call_redis('llen', "$base:primary");
+    my $count = $self->_call_redis('llen', "$base:primary");
     while ($count--) {
         # Iterate through all the keys.
         # It doesn't matter if we miss a couple because other workers are grabbing them...
         # that just means that somebody else will do the work.
-        my $key = $self->call_redis('rpoplpush', "$base:primary", "$base:primary");
+        my $key = $self->_call_redis('rpoplpush', "$base:primary", "$base:primary");
 
         # Quit if there aren't any keys left.
         return unless $key;
 
         # Check the timestamp, to make sure nobody else is processing the message.
         my $now = time();
-        my $fetched = $self->call_redis('getset', "$base:fetched:$key", $now);
+        my $fetched = $self->_call_redis('getset', "$base:fetched:$key", $now);
         if ($fetched < $threshold) {
-            my $message = $self->call_redis('get', "$base:value:$key");
+            my $message = $self->_call_redis('get', "$base:value:$key");
             return ($key, $message);
         }
 
         # Restore the original fetched timestamp (if different from what we put in).
         # The conditional is important if there's a bunch of workers hammering the queue.
-        $self->call_redis('set', "$base:fetched:$key", $fetched) if $fetched < $now;
+        $self->_call_redis('set', "$base:fetched:$key", $fetched) if $fetched < $now;
     }
 
     # Didn't find anything workable in the queue.  Oh, well.
@@ -143,9 +143,9 @@ sub deleteMessage {
     my $key = shift;
 
     my $base = $self->_queue_base($self->{queue});
-    $self->call_redis('lrem', "$base:primary", 0, $key);
-    $self->call_redis('del', "$base:fetched:$key");
-    $self->call_redis('del', "$base:value:$key");
+    $self->_call_redis('lrem', "$base:primary", 0, $key);
+    $self->_call_redis('del', "$base:fetched:$key");
+    $self->_call_redis('del', "$base:value:$key");
 }
 
 
@@ -163,7 +163,7 @@ sub length {
 
     my $base = $self->_queue_base($self->{queue});
 
-    return $self->call_redis('llen', "$base:primary");
+    return $self->_call_redis('llen', "$base:primary");
 }
 
 =head2 nuke
@@ -178,14 +178,14 @@ sub nuke {
 
     my $base = $self->_queue_base($self->{queue});
 
-    my @keys = $self->call_redis('keys', "$base:*");
+    my @keys = $self->_call_redis('keys', "$base:*");
 
     # Do the primary first, to try to avoid issues if someone uses/recreates the queue while we're nuking it.
-    $self->call_redis('del', "$base:primary");
+    $self->_call_redis('del', "$base:primary");
     # Nuke everything other than the primary.
     # May still miss some entries if stuff was added between the keys listing and the nuking of the primary...
     for my $key (grep($_ ne "$base:primary", @keys)) {
-        $self->call_redis('del', $key);
+        $self->_call_redis('del', $key);
     }
 }
 
@@ -203,9 +203,9 @@ sub peekMessages {
     my $base = $self->_queue_base($self->{queue});
 
     my @result;
-    my @keys = $self->call_redis('lrange', "$base:primary", 0, $max - 1);
+    my @keys = $self->_call_redis('lrange', "$base:primary", 0, $max - 1);
     for my $key (@keys) {
-        my $message = $self->call_redis('get', "$base:value:$key");
+        my $message = $self->_call_redis('get', "$base:value:$key");
         push(@result, $message) if $message;
     }
     return @result;
@@ -247,10 +247,10 @@ sub _queue_base {
     return "queue:$queue";
 }
 
-=head2 call_redis
+=head2 _call_redis
 
 =cut
-sub call_redis {
+sub _call_redis {
     my ($self, $method, @args) = @_;
 
     my @return;
