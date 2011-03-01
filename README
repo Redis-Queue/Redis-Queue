@@ -2,6 +2,9 @@ Redis-Queue
 
 Queue management using Redis cache server.
 
+We're still in the process of setting this library up for public consumption.
+Please do not submit any bug reports while this message is still in the README.
+
 INSTALLATION
 
 To install this module, run the following commands:
@@ -34,7 +37,7 @@ You can also look for information at:
 
 ACKNOWLEDGEMENTS
 
-Thank you to Marchex <http://marchex.com> for allowing time to be spent
+Thank you to Marchex <http://www.marchex.com/> for allowing time to be spent
 developing and maintaining this library.
 
 LICENSE AND COPYRIGHT
