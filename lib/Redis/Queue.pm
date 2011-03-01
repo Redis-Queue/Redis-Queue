@@ -35,7 +35,7 @@ of a connection.
     my $foo = Redis::Queue->new();
     ...
 
-=head1 SUBROUTINES/METHODS
+=head1 CONSTRUCTOR
 
 =head2 new
 
@@ -65,6 +65,8 @@ sub new {
     $self->{timeout} ||= 300;
     return $self;
 }
+
+=head1 THREADSAFE METHODS
 
 =head2 sendMessage
 
@@ -145,6 +147,9 @@ sub deleteMessage {
     $self->call_redis('del', "$base:fetched:$key");
     $self->call_redis('del', "$base:value:$key");
 }
+
+
+=head1 NON-THREADSAFE METHODS
 
 =head2 length
 
@@ -231,6 +236,8 @@ sub queues {
 
     return @queues;
 }
+
+=head1 PRIVATE METHODS
 
 =head2 _queue_base
 
