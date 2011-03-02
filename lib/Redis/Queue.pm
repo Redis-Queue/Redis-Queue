@@ -25,7 +25,7 @@ Worker should call receiveMessage to get a unit of work, and deleteMessage once
 the work is completed.  If the message isn't deleted within a given timeout,
 other workers can retrieve the message again.
 
-This object should be kept around for a while, because of the 'id' state
+The queue object should be kept around for a while, because of the 'id' state
 that it keeps when generating new entries.  If you have concerns about the
 redis connection dropping, pass a constructor as the $redis parameter isntead
 of a connection.
@@ -172,7 +172,7 @@ sub length {
 
 Delete all storage associated with the queue.  Messy things may happen if
 something else is trying to use the queue at the same time this runs.  On the
-other hand, it shouldn't be fatal, bu still leaves the the possibility of
+other hand, it shouldn't be fatal, but still leaves the the possibility of
 leaving some stuff behind.
 
 =cut
