@@ -318,6 +318,7 @@ L<https://github.com/Redis-Queue/>
 
 Thank you to Marchex L<http://www.marchex.com/> for allowing time to be spent
 developing and maintaining this library.
+Thanks also to Chris Petersen for major assistance in packaging of this library.
 
 =head1 LICENSE AND COPYRIGHT
 
